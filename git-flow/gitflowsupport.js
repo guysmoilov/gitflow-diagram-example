@@ -54,13 +54,16 @@ var stablizationCommit = {
 };
 
 // You can manually fix columns to control the display.
-var featureCol1 = 0;
-var featureCol2 = 1;
-var developCol = 2;
-var releaseCol = 3;
-var ver10xCol = 4;
-var supportCol = 5;
-var ver11xCol = 6;
+var develop_2xx_col = 2;
+var release_200_col = 1;
+var v20x_col = 0;
+var featureCol1 = 3;
+var featureCol2 = 4;
+var developCol = 5;
+var releaseCol = 6;
+var ver10xCol = 7;
+var supportCol = 8;
+var ver11xCol = 9;
 
 var gitgraph = new GitGraph(config);
 
@@ -95,8 +98,10 @@ function startReleaseBranch100() {
 }
 
 var feature3 = gitgraph.branch({parentBranch:develop, name:"feature/3", column:featureCol2});
+var develop_2xx_branch;
 function developDuring100rc() {
     develop.commit({messageDisplay:false});
+    develop_2xx_branch = gitgraph.branch({parentBranch: develop, name: "develop_v2", column:develop_2xx_col});
     doStuffButton.onclick = stabilizeRc100;
 }
 
@@ -110,6 +115,12 @@ function releaseRc100() {
     v10x_branch = gitgraph.branch({parentBranch:release_100, name:"v1.0.x", column:ver10xCol});
     v10x_branch.commit({message: "Official 1.0.0 release", tag: "1.0.0", dotStrokeWidth: 10});
     v10x_branch.merge(develop);
+    doStuffButton.onclick = developFor200InParallel;
+}
+
+function developFor200InParallel() {
+    develop_2xx_branch.commit();
+    develop_2xx_branch.commit();
     doStuffButton.onclick = developAndRelease110;
 }
 
@@ -128,7 +139,7 @@ function developAndRelease110() {
 
 var v100_support_branch;
 function bugfixOn100() {
-    v100_support_branch = gitgraph.branch({parentBranch:v10x_branch, name:"v1.0.0_HF", column:supportCol});
+    v100_support_branch = gitgraph.branch({parentBranch:v10x_branch, name:"v1.0.0_HF1", column:supportCol});
     v100_support_branch.commit();
     doStuffButton.onclick = finishBugfixOn100;
 }
@@ -138,5 +149,25 @@ function finishBugfixOn100() {
     v10x_branch.merge(develop);
     v100_support_branch.merge(v11x_branch, {message: "Official 1.1.1 release", tag: "1.1.1", dotStrokeWidth: 10});
     v11x_branch.merge(develop);
+    doStuffButton.onclick = mergeDevelopInto200;
+}
+
+function mergeDevelopInto200() {
+    develop.merge(develop_2xx_branch);
+    doStuffButton.onclick = startRelease200;
+}
+
+var release200branch;
+function startRelease200() {
+    release200branch = gitgraph.branch({parentBranch:develop_2xx_branch, name:"release/v2.0.0", column:release_200_col});
+    release200branch.commit();
+    doStuffButton.onclick = release200;
+}
+
+var v20xbranch;
+function release200() {
+    v20xbranch = gitgraph.branch({parentBranch:release200branch, name:"v2.0.x", column:v20x_col});
+    v20xbranch.commit({message: "Official 2.0.0 release", tag: "2.0.0", dotStrokeWidth: 10});
+    v20xbranch.merge(develop_2xx_branch);
     doStuffButton.onclick = null;
 }
