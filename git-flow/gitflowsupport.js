@@ -61,24 +61,27 @@ var releaseCol = 3;
 var ver10xCol = 4;
 var supportCol = 5;
 var ver11xCol = 6;
-// var masterCol = 4;
 
 var gitgraph = new GitGraph(config);
 
 var doStuffButton = document.getElementById("doStuff");
 
-var develop = gitgraph.branch({name:"develop", column:developCol});
-develop.commit("Initial commit");
+var master = gitgraph.branch({name:"master", column:developCol});
+master.commit("Initial commit");
+var develop = gitgraph.branch({parentBranch:master, name:"develop", column:developCol});
+develop.commit();
 var feature1;
 var feature2;
 
 function startTwoFeatures() {
-    var feature1 = gitgraph.branch({parentBranch:develop, name:"feature/1", column:featureCol1});
+    feature1 = gitgraph.branch({parentBranch:develop, name:"feature/1", column:featureCol1});
     feature1.commit("A feature to go into v1.0.0").commit({messageDisplay:false});
     develop.commit();
-    var feature2 = gitgraph.branch({parentBranch:develop, name:"feature/2", column:featureCol2});
+    feature2 = gitgraph.branch({parentBranch:develop, name:"feature/2", column:featureCol2});
     feature2.commit("Another feature to go into v1.0.0").commit({messageDisplay:false});
     feature2.merge(develop);
+    develop.merge(feature1);
+    feature1.commit();
     feature1.merge(develop);
     doStuffButton.onclick = startReleaseBranch100;
 }
